@@ -1988,7 +1988,7 @@ BEGIN
     v_sql3 := v_sql3||'                     AND E.src_ind <> ''I'' ';
     v_sql3 := v_sql3||'                AND ( E.MERCH_STAT <> ''156'' or (E.MERCH_STAT + 0) is null ) ';
     v_sql3 := v_sql3||'                THEN ';
-    v_sql3 := v_sql3||'                 CEIL(datediff(SYSDATE(),todate(CREATE_DATE,''yyyy-mm-dd''))) ';
+    v_sql3 := v_sql3||'                 CEIL(date_diff(SYSDATE(),todate(CREATE_DATE,''yyyy-mm-dd''))) ';
     v_sql3 := v_sql3||'              ELSE ';
     v_sql3 := v_sql3||'                 9999 ';
     v_sql3 := v_sql3||'              END ';
@@ -7791,7 +7791,7 @@ BEGIN
     v_sql4 := v_sql4||'                             AND E.src_ind <> ''I''     ';
     v_sql4 := v_sql4||'                        AND ( E.MERCH_STAT <> ''156'' or E.MERCH_STAT is null ) ';
     v_sql4 := v_sql4||'                        THEN ';
-    v_sql4 := v_sql4||'                         CEIL(DATEDIFF(SYSDATE(), toDate(CREATE_DATE,''yyyy-mm-dd''))) ';
+    v_sql4 := v_sql4||'                         CEIL(date_diff(SYSDATE(), toDate(CREATE_DATE,''yyyy-mm-dd''))) ';
     v_sql4 := v_sql4||'                      ELSE ';
     v_sql4 := v_sql4||'                         9999 ';
     v_sql4 := v_sql4||'                      END ';
@@ -9359,7 +9359,7 @@ BEGIN
     v_sql4 := v_sql4||'                            AND E.src_ind <> ''I''    ';
     v_sql4 := v_sql4||'                       AND ( E.MERCH_STAT <> ''156'' or E.MERCH_STAT is null ) ';
     v_sql4 := v_sql4||'                       THEN ';
-    v_sql4 := v_sql4||'                        CEIL(DATEDIFF(SYSDATE(), toDate(CREATE_DATE,''yyyy-mm-dd''))) ';
+    v_sql4 := v_sql4||'                        CEIL(date_diff(SYSDATE(), toDate(CREATE_DATE,''yyyy-mm-dd''))) ';
     v_sql4 := v_sql4||'                     ELSE ';
     v_sql4 := v_sql4||'                        9999 ';
     v_sql4 := v_sql4||'                     END ';
@@ -10930,7 +10930,7 @@ BEGIN
     v_sql4 := v_sql4||'                             AND E.src_ind <> ''I''      ';
     v_sql4 := v_sql4||'                        AND ( E.MERCH_STAT <> ''156'' or E.MERCH_STAT is null ) ';
     v_sql4 := v_sql4||'                        THEN ';
-    v_sql4 := v_sql4||'                         CEIL(DATEDIFF(SYSDATE(), toDate(CREATE_DATE,''yyyy-mm-dd''))) ';
+    v_sql4 := v_sql4||'                         CEIL(date_diff(SYSDATE(), toDate(CREATE_DATE,''yyyy-mm-dd''))) ';
     v_sql4 := v_sql4||'                      ELSE ';
     v_sql4 := v_sql4||'                         9999 ';
     v_sql4 := v_sql4||'                      END ';
@@ -12501,7 +12501,7 @@ BEGIN
     v_sql4 := v_sql4||'                             AND E.src_ind <> ''I''   ';
     v_sql4 := v_sql4||'                        AND ( E.MERCH_STAT <> ''156'' or E.MERCH_STAT is null ) ';
     v_sql4 := v_sql4||'                        THEN ';
-    v_sql4 := v_sql4||'                         CEIL(DATEDIFF(SYSDATE(), toDate(CREATE_DATE,''yyyy-mm-dd''))) ';
+    v_sql4 := v_sql4||'                         CEIL(date_diff(SYSDATE(), toDate(CREATE_DATE,''yyyy-mm-dd''))) ';
     v_sql4 := v_sql4||'                      ELSE ';
     v_sql4 := v_sql4||'                         9999 ';
     v_sql4 := v_sql4||'                      END ';
@@ -14072,7 +14072,7 @@ BEGIN
     v_sql4 := v_sql4||'                             AND E.src_ind <> ''I''     ';
     v_sql4 := v_sql4||'                        AND ( E.MERCH_STAT <> ''156'' or E.MERCH_STAT is null ) ';
     v_sql4 := v_sql4||'                        THEN ';
-    v_sql4 := v_sql4||'                         CEIL(DATEDIFF(SYSDATE(), toDate(CREATE_DATE,''yyyy-mm-dd''))) ';
+    v_sql4 := v_sql4||'                         CEIL(date_diff(SYSDATE(), toDate(CREATE_DATE,''yyyy-mm-dd''))) ';
     v_sql4 := v_sql4||'                      ELSE ';
     v_sql4 := v_sql4||'                         9999 ';
     v_sql4 := v_sql4||'                      END ';
@@ -15643,7 +15643,7 @@ BEGIN
     v_sql4 := v_sql4||'                             AND E.src_ind <> ''I''      ';
     v_sql4 := v_sql4||'                        AND ( E.MERCH_STAT <> ''156'' or E.MERCH_STAT is null ) ';
     v_sql4 := v_sql4||'                        THEN ';
-    v_sql4 := v_sql4||'                         CEIL(DATEDIFF(SYSDATE(), toDate(CREATE_DATE,''yyyy-mm-dd''))) ';
+    v_sql4 := v_sql4||'                         CEIL(date_diff(SYSDATE(), toDate(CREATE_DATE,''yyyy-mm-dd''))) ';
     v_sql4 := v_sql4||'                      ELSE ';
     v_sql4 := v_sql4||'                         9999 ';
     v_sql4 := v_sql4||'                      END ';
@@ -17214,7 +17214,7 @@ BEGIN
     v_sql4 := v_sql4||'                             AND E.src_ind <> ''I''    ';
     v_sql4 := v_sql4||'                        AND ( E.MERCH_STAT <> ''156'' or E.MERCH_STAT is null ) ';
     v_sql4 := v_sql4||'                        THEN ';
-    v_sql4 := v_sql4||'                         CEIL(DATEDIFF(SYSDATE(), toDate(CREATE_DATE,''yyyy-mm-dd''))) ';
+    v_sql4 := v_sql4||'                         CEIL(date_diff(SYSDATE(), toDate(CREATE_DATE,''yyyy-mm-dd''))) ';
     v_sql4 := v_sql4||'                      ELSE ';
     v_sql4 := v_sql4||'                         9999 ';
     v_sql4 := v_sql4||'                      END ';
@@ -18314,7 +18314,7 @@ BEGIN
     v_sql23 := v_sql23||'         THEN ';
     v_sql23 := v_sql23||'            -9999 ';
     v_sql23 := v_sql23||'         ELSE ';
-    v_sql23 := v_sql23||'       CEIL(datediff(SYSDATE(),toDate(t20.active_day, ''yyyy-mm-dd''))) ';
+    v_sql23 := v_sql23||'       CEIL(date_diff(SYSDATE(),toDate(t20.active_day, ''yyyy-mm-dd''))) ';
     v_sql23 := v_sql23||'      END, ';
     v_sql23 := v_sql23||'      0, ';
     v_sql23 := v_sql23||'      0, ';
@@ -19022,7 +19022,7 @@ BEGIN
     v_sql24 := v_sql24||'         THEN ';
     v_sql24 := v_sql24||'            -9999 ';
     v_sql24 := v_sql24||'         ELSE ';
-    v_sql24 := v_sql24||'       CEIL(datediff(SYSDATE(),toDate(t20.active_day, ''yyyy-mm-dd''))) ';
+    v_sql24 := v_sql24||'       CEIL(date_diff(SYSDATE(),toDate(t20.active_day, ''yyyy-mm-dd''))) ';
     v_sql24 := v_sql24||'      END, ';
     v_sql24 := v_sql24||'      0, ';
     v_sql24 := v_sql24||'      0, ';

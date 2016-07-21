@@ -6,6 +6,7 @@ create function todate as 'com.annuus.hive.udf.ToDate6UDF';
 create function roundmonth as 'com.annuus.hive.udf.UDFRoundMonth';
 create function coal as 'com.annuus.hive.udf.UDFCoal';
 create function month_add as 'com.annuus.hive.udf.UDFMonthAdd';
+create function date_diff as 'com.annuus.hive.udf.UDFDatediff';
 
 
 --HIVE
@@ -24,6 +25,8 @@ create function zhglinc.todate as 'com.annuus.hive.udf.ToDate6UDF' using jar 'hd
 create function zhglinc.roundmonth as 'com.annuus.hive.udf.UDFRoundMonth' using jar 'hdfs://zhgl-d:9000/user/hive/udf.jar';
 create function zhglinc.coal as 'com.annuus.hive.udf.UDFCoal' using jar 'hdfs://zhgl-d:9000/user/hive/udf.jar';
 create function zhglinc.month_add as 'com.annuus.hive.udf.UDFMonthAdd' using jar 'hdfs://zhgl-d:9000/user/hive/udf.jar';
+create function zhglinc.date_diff as 'com.annuus.hive.udf.UDFDatediff' using jar 'hdfs://zhgl-d:9000/user/hive/udf.jar';
+
 
 drop function zhgltest.sysdate;
 drop function zhgltest.firstday;

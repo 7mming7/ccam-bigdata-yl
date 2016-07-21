@@ -179,6 +179,22 @@ public class DateUtils {
     }
 
     /**
+     * 计算两个日期见天数的小数值，不取整
+     * @param first
+     * @param second
+     * @return
+     */
+    public static Float dayFloatValueBetTwoCal(Calendar first, Calendar second) {
+        if (first == null || second == null) {
+            return null;
+        }
+
+        Float betMillions = Float.valueOf(first.getTimeInMillis() - second.getTimeInMillis());
+        System.out.println(betMillions/(24*60*60*1000));
+        return betMillions/(24*60*60*1000);
+    }
+
+    /**
      * 计算两个int日期之间所有的日期
      * 2014年1月26日 下午3:02:39 shuiqing添加此方法
      * @param startDate

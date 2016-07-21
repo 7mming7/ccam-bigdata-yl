@@ -49,7 +49,7 @@ BEGIN
     v_sql := v_sql||'   ,''1'' ';
     v_sql := v_sql||'   ,COAL(T5.APP_DAY,T0.DAY_OPENED) ';
     v_sql := v_sql||'   ,''1'' ';
-    v_sql := v_sql||'   , datediff(toDate('' '||v_ETL_DATE||' '',''yyyy-mm-dd''), ';
+    v_sql := v_sql||'   , date_diff(toDate('' '||v_ETL_DATE||' '',''yyyy-mm-dd''), ';
     v_sql := v_sql||'   COAL(toDATE(T6.CANCL_DAY,''yyyy-mm-dd''),toDate('' '||v_ETL_DATE||' '',''yyyy-mm-dd''))) ';
     v_sql := v_sql||'   ,CONCAT(''20'',T2.EXPIRY_DTE,''01'' )';
     v_sql := v_sql||'   ,CASE WHEN T7.CANCL_CODE IN (''T'',''Q'') THEN ''1'' ELSE ''0'' END ';

@@ -110,7 +110,7 @@ BEGIN
         v_sql2 := v_sql2||'                    THEN     ';
         v_sql2 := v_sql2||'                       9999     ';
         v_sql2 := v_sql2||'                    ELSE     ';
-        v_sql2 := v_sql2||'                    CEIL(datediff(SYSDATE(), toDate (T5.HISTUPDATEDDATE, ''yyyy-mm-dd'') ))     ';
+        v_sql2 := v_sql2||'                    CEIL(date_diff(SYSDATE(), toDate (T5.HISTUPDATEDDATE, ''yyyy-mm-dd'') ))     ';
         v_sql2 := v_sql2||'                 END     ';
         v_sql2 := v_sql2||'                    ,     ';
         v_sql2 := v_sql2||'                 CASE     ';
@@ -118,7 +118,7 @@ BEGIN
         v_sql2 := v_sql2||'                    THEN     ';
         v_sql2 := v_sql2||'                       9999     ';
         v_sql2 := v_sql2||'                    ELSE     ';
-        v_sql2 := v_sql2||'                    CEIL(datediff(SYSDATE(), toDate (T6.HISTUPDATEDDATE, ''yyyy-mm-dd'') ))     ';
+        v_sql2 := v_sql2||'                    CEIL(date_diff(SYSDATE(), toDate (T6.HISTUPDATEDDATE, ''yyyy-mm-dd'') ))     ';
         v_sql2 := v_sql2||'                 END     ';
         v_sql2 := v_sql2||'                    ,     ';
         v_sql2 := v_sql2||'                 CASE     ';
@@ -126,7 +126,7 @@ BEGIN
         v_sql2 := v_sql2||'                    THEN     ';
         v_sql2 := v_sql2||'                       9999     ';
         v_sql2 := v_sql2||'                    ELSE     ';
-        v_sql2 := v_sql2||'                    CEIL(datediff(SYSDATE(), toDate (T7.HISTUPDATEDDATE, ''yyyy-mm-dd'') ))     ';
+        v_sql2 := v_sql2||'                    CEIL(date_diff(SYSDATE(), toDate (T7.HISTUPDATEDDATE, ''yyyy-mm-dd'') ))     ';
         v_sql2 := v_sql2||'                 END     ';
         v_sql2 := v_sql2||'                    ,     ';
         v_sql2 := v_sql2||'                 CASE     ';
@@ -134,7 +134,7 @@ BEGIN
         v_sql2 := v_sql2||'                    THEN     ';
         v_sql2 := v_sql2||'                       9999     ';
         v_sql2 := v_sql2||'                    ELSE     ';
-        v_sql2 := v_sql2||'                    CEIL(datediff(SYSDATE(), toDate (T8.HISTUPDATEDDATE, ''yyyy-mm-dd'') ))     ';
+        v_sql2 := v_sql2||'                    CEIL(date_diff(SYSDATE(), toDate (T8.HISTUPDATEDDATE, ''yyyy-mm-dd'') ))     ';
         v_sql2 := v_sql2||'                 END     ';
         v_sql2 := v_sql2||'            FROM FDM_S24_CUR_ACCT T1     ';
         v_sql2 := v_sql2||'                 LEFT JOIN     ';
