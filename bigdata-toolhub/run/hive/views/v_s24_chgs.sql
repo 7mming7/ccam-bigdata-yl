@@ -1,0 +1,37 @@
+use zhgl;
+
+CREATE VIEW if not exists V_S24_CHGS AS
+SELECT XACCOUNT,
+          BANK,
+          BUSINESS,
+          ENTRY_CODE,
+          ENTRY_DAY,
+          ENTRY_TIME,
+          INP_DAY,
+          PURGE_DAY,
+          SEQ_NBR,
+          BRANCH,
+          CARD_BIN,
+          CARD_NBR,
+          CUSTR_NBR,
+          DEV_ADDR,
+          DEV_TYPE,
+          EMPLY_NBR,
+          END_DIGITS,
+          ENTRY_SUB,
+          ENTRY_TYPE,
+          NEW_VALU,
+          NO_CHANGED,
+          NOTES_DAY,
+          NOTES_SEQ,
+          ORIDE_EMPL,
+          ORIDE_LVL,
+          PRIOR_VALU,
+          PRODUCT,
+          REP_FLAG,
+          SEC_LEVEL,
+          RCU_EMPLY,
+          OR_RCU_EMP,
+          BRNO
+     FROM S24_CHGS;
+

@@ -1,0 +1,50 @@
+use zhgl;
+
+create table if not exists S24_APSCR(
+bank             string,
+sapp_jday        string,
+sapp_seq         string,
+app_act1         string,
+app_act10        string,
+app_act11        string,
+app_act12        string,
+app_act13        string,
+app_act14        string,
+app_act2         string,
+app_act3         string,
+app_act4         string,
+app_act5         string,
+app_act6         string,
+app_act7         string,
+app_act8         string,
+app_act9         string,
+app_pact1        string,
+app_pact10       string,
+app_pact11       string,
+app_pact12       string,
+app_pact13       string,
+app_pact14       string,
+app_pact2        string,
+app_pact3        string,
+app_pact4        string,
+app_pact5        string,
+app_pact6        string,
+app_pact7        string,
+app_pact8        string,
+app_pact9        string,
+cred_limit       string,
+maxscore         string,
+perc             string,
+app_scorea       string,
+app_scorep       string,
+app_maxa         string,
+app_maxp         string,
+app_dec          string,
+reqlim           string,
+score            string,
+app_olim         string
+)
+row format delimited
+fields terminated by '|'
+stored as textfile
+location '/user/hive/warehouse/HDFSDIRNAME/s24_apscr';

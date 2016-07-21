@@ -1,0 +1,58 @@
+use zhgl;
+
+create table if not exists FDM_S24_CUSP (
+  start_date string,
+  bank       string,
+  custr_nbr  string,
+  car_date   string,
+  car_id     string,
+  car_nam    string,
+  car_code   string,
+  home_code  string,
+  home_loan  string,
+  yr_there   string,
+  income_src string,
+  spu_nam    string,
+  spu_tel    string,
+  income_sr2 string,
+  income_an2 string,
+  yr_in_com2 string,
+  spu_mobile string,
+  forecomp   string,
+  foredept   string,
+  forejob    string,
+  foreann    string,
+  yr_forecom string,
+  forebusi   string,
+  dependents string,
+  xrefacct1  string,
+  xrefacct2  string,
+  xrefacct3  string,
+  xrefacct4  string,
+  xrefcode1  string,
+  xrefcode2  string,
+  xrefcode3  string,
+  xrefcode4  string,
+  schlnm_ch  string,
+  schlnm_en  string,
+  email_in   string,
+  car_amt    string,
+  reserve1   string,
+  reserve2   string,
+  reserve3   string,
+  reserve4   string,
+  reserve5   string,
+  reserve6   string,
+  reserve7   string,
+  reserve8   string,
+  reserve9   string,
+  reserve10  string,
+  reserve11  string,
+  reserve12  string,
+  prop_area  string
+)
+partitioned by (end_date string)
+row format delimited
+fields terminated by '|'
+stored as textfile
+location '/user/hive/warehouse/HDFSDIRNAME/fdm_s24_cusp';

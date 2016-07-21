@@ -1,0 +1,51 @@
+use zhgl;
+
+create table if not exists S24_APGU(
+app_jday         string,
+app_seq          string,
+bank             string,
+guarn_bank       string,
+guarn_amt        string,
+guarn_code       string,
+guarn_id         string,
+guarn_ref        string,
+guarn_rel        string,
+xrefacct1        string,
+xrefacct2        string,
+xrefacct3        string,
+xrefacct4        string,
+xrefcode1        string,
+xrefcode2        string,
+xrefcode3        string,
+xrefcode4        string,
+xrefcrlmt1       string,
+con_nme1         string,
+con_id1          string,
+con_comp1        string,
+con_area1        string,
+con_phn1         string,
+con_ext1         string,
+con_mo1          string,
+con_rel1         string,
+con_nme2         string,
+con_id2          string,
+con_comp2        string,
+con_area2        string,
+con_phn2         string,
+con_ext2         string,
+con_mo2          string,
+con_rel2         string,
+rel_nme          string,
+rel_id           string,
+rel_comp         string,
+rel_area         string,
+rel_phn          string,
+rel_ext          string,
+rel_mo           string,
+rel_rel          string,
+app_day          string
+)
+row format delimited
+fields terminated by '|'
+stored as textfile 
+location '/user/hive/warehouse/HDFSDIRNAME/s24_apgu';
