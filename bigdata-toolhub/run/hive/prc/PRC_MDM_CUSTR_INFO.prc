@@ -82,7 +82,7 @@ v_sql := v_sql||' LEFT JOIN (SELECT ';
 v_sql := v_sql||'                   CUSTR_NBR ';
 v_sql := v_sql||'                   ,COUNT(*) AS COUNT ';
 v_sql := v_sql||'             FROM FDM_S24_CUR_CUNEG ';
-v_sql := v_sql||'             WHERE STATUS <> ''D'' GROUP BY CUSTR_NBR ) T4 ';
+v_sql := v_sql||'             WHERE coal(STATUS,'' '') <> ''D'' GROUP BY CUSTR_NBR ) T4 ';
 v_sql := v_sql||'   ON  T0.CUSTR_NBR  = T4.CUSTR_NBR ';
 v_sql := v_sql||' LEFT JOIN (SELECT ';
 v_sql := v_sql||'                   ARTI_ID ';

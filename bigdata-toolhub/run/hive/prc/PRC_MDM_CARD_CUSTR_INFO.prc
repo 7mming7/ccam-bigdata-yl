@@ -45,7 +45,7 @@ BEGIN
     v_sql := v_sql||'                       INNER JOIN ';
     v_sql := v_sql||'                       (  SELECT XACCOUNT, MAX (CARDHOLDER + 0) AS CARDHOLDER ';
     v_sql := v_sql||'                            FROM V_FDM_S24_CUR_CARD_COM cc                   ';
-    v_sql := v_sql||'                           WHERE CARDHOLDER <> ''1'' ';
+    v_sql := v_sql||'                           WHERE coal(CARDHOLDER,'' '') <> ''1'' ';
     v_sql := v_sql||'                        GROUP BY XACCOUNT) C1 ';
     v_sql := v_sql||'                          ON     C0.XACCOUNT = C1.XACCOUNT ';
     v_sql := v_sql||'                             AND C0.CARDHOLDER = C1.CARDHOLDER ';

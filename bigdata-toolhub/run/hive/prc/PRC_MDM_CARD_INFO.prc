@@ -82,7 +82,7 @@ BEGIN
     v_sql := v_sql||'      ACCOUNT ';
     v_sql := v_sql||'      ,MIN(APP_DAY) AS APP_DAY ';
     v_sql := v_sql||'      FROM FDM_S24_APMA  DD ';
-    v_sql := v_sql||'      WHERE DECCAN_CDE = ''A'' AND ADDL_CARD <> ''1'' ';
+    v_sql := v_sql||'      WHERE DECCAN_CDE = ''A'' AND coal(ADDL_CARD,'' '') <> ''1'' ';
     v_sql := v_sql||'      GROUP BY ACCOUNT) T5 ';
     v_sql := v_sql||'   ON  T0.XACCOUNT  = T5.ACCOUNT ';
     v_sql := v_sql||' LEFT JOIN (SELECT ';

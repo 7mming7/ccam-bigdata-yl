@@ -118,8 +118,8 @@ BEGIN
     v_sql := v_sql||'    ,''0'' ';
     v_sql := v_sql||'    ,''0'' ';
     v_sql := v_sql||'    ,COAL(T2.NEW_EXAMT,0) ';
-    v_sql := v_sql||'    ,CASE WHEN T1.ODUE_FLAG <> 0 THEN 1 ';
-    v_sql := v_sql||'          WHEN T2.ODUE_FLAG <> 0 THEN 1 ';
+    v_sql := v_sql||'    ,CASE WHEN coal(T1.ODUE_FLAG,'' '') <> 0 THEN 1 ';
+    v_sql := v_sql||'          WHEN coal(T2.ODUE_FLAG,'' '') <> 0 THEN 1 ';
     v_sql := v_sql||'          ELSE 0 END  ';
     v_sql := v_sql||'    ,T1.ODUE_HELD + COAL(T2.ODUE_HELD ,0) * COAL(B.RATE_VAL0,0) ';
     v_sql := v_sql||'    ,  CASE WHEN T1.OPBAL_FLAG = ''+'' ';
