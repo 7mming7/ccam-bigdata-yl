@@ -18113,8 +18113,8 @@ BEGIN
     v_sql21 := v_sql21||'          end ';
     v_sql21 := v_sql21||'          end as ovd ';
     v_sql21 := v_sql21||'      from fdm_s24_stmt ';
-    v_sql21 := v_sql21||'     where  ADD_MONTHS (create_date, +1) < SYSDATE() ';
-    v_sql21 := v_sql21||'       and ADD_MONTHS (create_date, +1)  >= ADD_MONTHS (SYSDATE(), -6) ';
+    v_sql21 := v_sql21||'     where  ADD_MONTHS (todate(create_date,''yyyy-mm-dd''), +1) < SYSDATE() ';
+    v_sql21 := v_sql21||'       and ADD_MONTHS (todate(create_date,''yyyy-mm-dd''), +1)  >= ADD_MONTHS (SYSDATE(), -6) ';
     v_sql21 := v_sql21||'     ) t ';
     v_sql21 := v_sql21||' group by xaccount ) T16 ON T.XACCOUNT = T16.xaccount ';
 

@@ -13,21 +13,23 @@ def splitFile(path, opath):
         return False
 
     if os.path.isfile(path):
-        #print "path:", path
-        #print "opath:", opath
-        file_path = os.path.split(path)  # 分割出目录与文件
-        lists = file_path[1].split('.')  # 分割出文件与文件扩展名
-        file_ext = lists[-1]  # 取出后缀名(列表切片操作)
-        file_name = lists[0]  # 取出后缀名(列表切片操作)
-        #print "file_name:", file_name
-        img_ext = ['txt']
-        if file_ext in img_ext:
-            i += 1  # 注意这里的i是一个陷阱
-            err_file = opath + file_name + "_err." + file_ext
-            right_file = opath + file_name + "_right." + file_ext
-            #print "err_file:", err_file
-            #print "right_file:", right_file
-            split(path,err_file,right_file)
+        print "path size:", os.path.getsize(path)
+        if os.path.getsize(path) != 0:
+            #print "path:", path
+            #print "opath:", opath
+            file_path = os.path.split(path)  # 分割出目录与文件
+            lists = file_path[1].split('.')  # 分割出文件与文件扩展名
+            file_ext = lists[-1]  # 取出后缀名(列表切片操作)
+            file_name = lists[0]  # 取出后缀名(列表切片操作)
+            #print "file_name:", file_name
+            img_ext = ['txt']
+            if file_ext in img_ext:
+                i += 1  # 注意这里的i是一个陷阱
+                err_file = opath + file_name + "_err." + file_ext
+                right_file = opath + file_name + "_right." + file_ext
+                #print "err_file:", err_file
+                #print "right_file:", right_file
+                split(path,err_file,right_file)
 
     elif os.path.isdir(path):
         #print '这是一个地址'
