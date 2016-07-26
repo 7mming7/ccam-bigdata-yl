@@ -5,30 +5,30 @@
 DEBUG=1
 
 # 测试用'库名'                                  [可以修改] #
-DB_NAME="zhglinc"
+DB_NAME="zhgl0726"
 
 # 测试用'提交转码任务'间隔时间(单位: 秒)        [可以修改] #
 # 若在本地测试,          SCHE_SLEEP_SECS >= 60s
 # 若在服务器测试, 20s >= SCHE_SLEEP_SECS >= 10s
 # 注意: 间隔时间小于10s,容易报内存不够导致任务出错!!!
-SCHE_SLEEP_SECS=10
+SCHE_SLEEP_SECS=16
 
 # 测试用'查询任务状态'间隔时间(单位: 秒)        [可以修改] #
 QUERY_SLEEP_SECS=10
 
 # 测试用'增量数据存放目录'                      [可以修改] #
-INCREASE_DATA_DIR="/data1/20160530_increase/1418_20151214"
+INCREASE_DATA_DIR="/data1/20160530_increase/1418_20151213"
 
-# 目录结构之'顶层目录' #                     [不建议修改!] #
+# 目录结构之'顶层目录' # [可以修改,但要保证下面的目录结构] #
 TOP_DIR="/home/hadoop/ccam-bigdata/bigdata-toolhub/run/hive"
 # 目录结构:
 #          $TOP_DIR
 #                |-- bin/
 #                |-- data/
 #                |-- etl/
+#                |-- initdata/
 #                |-- fun/
 #                |-- lib/
-#                |-- load/  -- 删?
 #                |-- logs/
 #                |-- prc/
 #                |-- tables/
@@ -38,7 +38,7 @@ TOP_DIR="/home/hadoop/ccam-bigdata/bigdata-toolhub/run/hive"
 # 获取 sys_id  -  从脚本执行时传入(4位数字) #
 sys_id=$1
 if [ -z $sys_id ]; then
-  echo "Error 0-0 !!!"
+  echo "Error!!!"
   echo "Usage: etl_sche.sh <sys_id>"
   exit 1
 fi
@@ -53,13 +53,19 @@ cur_script="$0"
 begin_secs=$(date '+%s')
 
 if [ $DEBUG -eq 1 ]; then
+  echo "#"
   echo "# 开始ETL调度!  #"
   echo "# 开始时间: $(date '+%Y-%m-%d %T')  #"
-  echo "#"
+  echo "#"  
+  echo "# sys_id: ${sys_id}  #"
+  echo "#"  
 else
   echo "${cur_script} running ..."
+  echo "sys_id: ${sys_id}"  
 fi
 
+
+comment() {
 # 获取ETL日期(暂定使用 systempara 表中的 curdate ) #
 #   如果 systempara 表中有数据,用且仅用第一条
 #   如果 systempara 表中无数据,用当前系统日期
@@ -72,9 +78,9 @@ fi
 # 方案二: 使用awk, 利用"OK"进行分割 - TODO
 hive -e "SELECT curdate FROM ${DB_NAME}.systempara LIMIT 1" > temp 2>&1
 if [ $? -eq 0 ]; then 
-  # Note: 仅在服务器上结果数据"可能"保存在 temp 文件的第 12 行! 
+  # Note: 仅在服务器上结果数据"可能"保存在 temp 文件的第 13 行! 
   # P.S. 同时,查询结果可能为空,即 temp 文件中可能只有INFO信息!
-  etl_date=`sed -n '12p' temp`
+  etl_date=`sed -n '13p' temp`
   # 确保 1)$ETL_DATE是一个数字 2)$ETL_DATE满足一定格式(即大于一个给定的6位数值) #  # TODO - 与银联确认最小日期 #
   if [ $etl_date -lt 19700101 ]; then
     # 不满足上述条件,即查询为空,则使用当前系统日期
@@ -84,13 +90,15 @@ if [ $? -eq 0 ]; then
   rm -f temp > /dev/null 2>&1
 else
   if [ $DEBUG -eq 1 ]; then
-    echo "# Error 1-01 !!!  ${DB_NAME}库下systempara表不存在,请检查并重新执行脚本!  #"
+    echo "# Error 1-1 !!!  ${DB_NAME}库下systempara表不存在,请检查并重新执行脚本!  #"
   else
-    echo "Error 1-01 !!!  'systempara' table not exist in '${DB_NAME}' !"
+    echo "Error 1-1 !!!  'systempara' table not exist in '${DB_NAME}' !"
     echo "Please check log and execute again!"
   fi
   exit 1
 fi
+}
+etl_date=20151213
 if [ $DEBUG -eq 1 ]; then
   echo "# ETL日期: ${etl_date}  #"
   echo "#"
@@ -100,7 +108,7 @@ fi
 
 
 # 准备'ETL日志文件存放目录' #
-##################################################
+################################################## Start
 logdir=$TOP_DIR/logs/$etl_date
 if [ $DEBUG -eq 1 ]; then
   echo "# 正在准备'ETL日志文件存放目录' ......  #"
@@ -122,16 +130,18 @@ errlogfile=$logdir/etl_sche.errlog.$etl_date
 
 
 # 检测Hive表和视图是否已初始化 #
-################################################## Start
+############################################## Start
 if [ $DEBUG -eq 1 ]; then
   echo "# 正在检测数据库 ${DB_NAME} ......  #"
 fi
 hive -e "USE ${DB_NAME}" > $logfile 2>&1
 if [ $? -ne 0 ]; then
   if [ $DEBUG -eq 1 ]; then
-    echo "# Error 2-01 !!! '${DB_NAME}'不存在,请先执行etl_init.sh脚本!  #"
+    echo "# Error 2-1 !!! '${DB_NAME}'不存在,请先执行etl_init.sh脚本!  #"
+    echo "# Error 2-1 !!! '${DB_NAME}'不存在,请先执行etl_init.sh脚本!  #" > $errlogfile 2>&1
   else
-    echo "Error 2-01 !!!  '${DB_NAME}' not exist!"
+    echo "Error 2-1 !!!  '${DB_NAME}' not exist!"
+    echo "Error 2-1 !!!  '${DB_NAME}' not exist!" > $errlogfile 2>&1
 	echo "Please run 'etl_init.sh' first!"
   fi
   exit 1
@@ -154,9 +164,11 @@ hive -e "SELECT * FROM ${DB_NAME}.temp_stmtfeeincreasemonth_l6m LIMIT 1;
          SELECT * FROM ${DB_NAME}.v_s24_stmx LIMIT 1" >> $logfile 2>&1
 if [ $? -ne 0 ]; then
   if [ $DEBUG -eq 1 ]; then
-    echo "# Error 2-02 !!!  Hive表和视图不存在/完整,请先执行etl_init.sh脚本!  #"
+    echo "# Error 2-2 !!!  Hive表和视图不存在/完整,请先执行etl_init.sh脚本!  #"
+    echo "# Error 2-2 !!!  Hive表和视图不存在/完整,请先执行etl_init.sh脚本!  #" >> $errlogfile 2>&1
   else
-    echo "Error 2-02 !!!  Tables and views not exist [all]!"
+    echo "Error 2-2 !!!  Tables and views not exist [all]!"
+    echo "Error 2-2 !!!  Tables and views not exist [all]!" >> $errlogfile 2>&1
     echo "Please run 'etl_init.sh' first!"
   fi
   exit 1
@@ -167,7 +179,17 @@ if [ $DEBUG -eq 1 ]; then
 else
   echo "Tables and views have initialized."
 fi
-################################################## The end.
+
+
+# 检查MySQL中yinlian库下JOB_SCHE表中是否有JOB_NM的JOB_STATUS异常('2') #
+checkException() {
+  counter=`mysql -uroot -Dyinlian -e "SELECT count(*) FROM JOB_SCHE\
+            WHERE JOB_TYPE='${job_type}' AND JOB_STATUS='2' AND JOB_SCHE_DATE='${etl_date}' AND SYS_ID='${sys_id}' "`
+  # 示例: echo ${counter}  结果: "count(*) 0" or "count(*) 1"
+  eNumbers=`echo ${counter}|awk -F " " '{print $2}'`
+
+  echo $eNumbers
+}
 
 
 isTarZFile=0
@@ -196,7 +218,7 @@ for file in `ls $INCREASE_DATA_DIR`; do
 	fi
 
 	# 解压 xxx.tar.Z 文件 #
-	#################################################### Start
+	######################################################## Start
 	if [ $DEBUG -eq 1 ]; then
       echo "# 正在解压 ${INCREASE_DATA_DIR}/${file} 文件  #"
 	  echo "# 到 ${datadir} 目录 ......  #"
@@ -204,9 +226,11 @@ for file in `ls $INCREASE_DATA_DIR`; do
     tar -xzf $INCREASE_DATA_DIR/$file -C $datadir
     if [ $? -ne 0 ]; then
 	  if [ $DEBUG -eq 1 ]; then
-        echo "# Error 3-01 !!!  解压异常,请检查'压缩文件路径'和'解压路径'并重新执行脚本!  #"
+        echo "# Error 3-1 !!!  解压异常,请检查'压缩文件路径'和'解压路径'并重新执行脚本!  #"
+        echo "# Error 3-1 !!!  解压异常,请检查'压缩文件路径'和'解压路径'并重新执行脚本!  #" >> $errlogfile 2>&1
       else
-        echo "Error 3-01 !!!  Uncompress '${file}' failed!"
+        echo "Error 3-1 !!!  Uncompress '${file}' failed!"
+        echo "Error 3-1 !!!  Uncompress '${file}' failed!" >> $errlogfile 2>&1
 		echo "Please check log and execute again!"
 	  fi
       exit 1
@@ -216,8 +240,8 @@ for file in `ls $INCREASE_DATA_DIR`; do
       echo "#"
 	fi
 
-    # 遍历'解压数据存放目录',统计文件分布(总数,非空数) #
-    #################################################### Start
+    # 遍历'解压数据存放目录',统计S24_XXX.txt文件分布(总数,非空数) #
+    ############################################################### Start
     totalFiles=0
     nonEmptyFiles=0
     
@@ -235,9 +259,11 @@ for file in `ls $INCREASE_DATA_DIR`; do
     #/////////////////////////////
     if [ $totalFiles -eq 0 ]; then
       if [ $DEBUG -eq 1 ]; then
-        echo "# Error 3-02 !!!  ${datadir}目录下没有S24_XXX.txt文件,请检查并重新执行脚本!  #"
+        echo "# Error 3-2 !!!  ${datadir}目录下没有S24_XXX.txt文件,请检查并重新执行脚本!  #"
+        echo "# Error 3-2 !!!  ${datadir}目录下没有S24_XXX.txt文件,请检查并重新执行脚本!  #" >> $errlogfile 2>&1
       else
-        echo "Error 3-02 !!!  No 'txt' file in ${datadir} !"
+        echo "Error 3-2 !!!  No 'txt' file in ${datadir} !"
+        echo "Error 3-2 !!!  No 'txt' file in ${datadir} !" >> $errlogfile 2>&1
 	    echo "Please check log and execute again!"	  
       fi
       exit 1
@@ -256,12 +282,14 @@ for file in `ls $INCREASE_DATA_DIR`; do
       echo "# 正在准备MySQL上yinlian库下的JOB_SCHE表 ......  #"
     fi
     mysql -uroot -Dyinlian -e "DELETE FROM JOB_SCHE 
-                                WHERE JOB_TYPE='${JOB_TYPE}' AND JOB_SCHE_DATE='${etl_date}' AND SYS_ID='${sys_id}' " >> $logfile 2>&1
+                                WHERE JOB_TYPE='${job_type}' AND JOB_SCHE_DATE='${etl_date}' AND SYS_ID='${sys_id}' " >> $logfile 2>&1
     if [ $? -ne 0 ]; then
 	  if [ $DEBUG -eq 1 ]; then
-	    echo "# Error 3-03 !!!  访问MySQL出错,请检查访问权限并重新执行脚本!  #"
+	    echo "# Error 3-3 !!!  访问MySQL出错,请检查访问权限并重新执行脚本!  #"
+	    echo "# Error 3-3 !!!  访问MySQL出错,请检查访问权限并重新执行脚本!  #" >> $errlogfile 2>&1
 	  else
-        echo "Error 3-03 !!!  Access MySQL failed!"
+        echo "Error 3-3 !!!  Access MySQL failed!"
+        echo "Error 3-3 !!!  Access MySQL failed!" >> $errlogfile 2>&1
 		echo "Please check log and execute again!"         	  
 	  fi
       exit 1
@@ -272,7 +300,7 @@ for file in `ls $INCREASE_DATA_DIR`; do
     fi
 
 	# 开始 hadoop jar 转码所有非空S24_XXX.txt增量文件 #
-	##################################################### Start
+	################################################### Start
 	if [ $DEBUG -eq 1 ]; then
       echo "# 开始转码 ${nonEmptyFiles} 个非空S24_XXX.txt增量文件!  #"
       echo "# 转码开始时间: $(date '+%Y-%m-%d %T')  #"
@@ -291,7 +319,7 @@ for file in `ls $INCREASE_DATA_DIR`; do
         if [ -s $f ]; then
           index=$[ $index + 1 ]
 		  if [ $DEBUG -eq 1 ]; then
-            echo "# ********************************************************************** #"
+            echo "# *********************************************************************** #"
             echo "# ${index}/${nonEmptyFiles}文件名：${f} => 正在提交转码任务,请等待 ${SCHE_SLEEP_SECS}s ......  #"
           fi
           tabnameTemp=`echo ${f}|awk -F 20 '{print $1}'`
@@ -307,11 +335,28 @@ for file in `ls $INCREASE_DATA_DIR`; do
           cd $TOP_DIR/etl
       
           # TODO - 如何捕获 nohup ./etl_trans.sh 的异常 #
-          nohup ./etl_trans.sh $etl_date $tabname $dbfile $jarfile $dbInDir $dbOutDir $JOB_TYPE $sys_id $errlogfile >> $tablog 2>&1 &
+          nohup ./etl_trans.sh $etl_date $tabname $dbfile $jarfile $dbInDir $dbOutDir $job_type $sys_id $errlogfile >> $tablog 2>&1 &
 
           sleep $SCHE_SLEEP_SECS  # 为防止任务后台积压,需间隔一定时间再提交任务
 		fi
       fi
+      
+      # 每次提交完任务后
+      # 查询是否有转码异常,若有则提示执行重跑脚本etl_redo.sh后退出 #
+      eNumbers=`checkException`
+      if [ $eNumbers -gt 0 ]; then
+        if [ $DEBUG -eq 1 ]; then
+          echo "# Error 3-4!!! 转码异常,请执行etl_redo.sh脚本重跑ETL!  #"
+          echo "# Error 3-4!!! 转码异常,请执行etl_redo.sh脚本重跑ETL!  #" >> $errlogfile 2>&1
+          echo "#"
+        else
+          echo "Error 3-4 !!!  hadoop jar failed!"
+          echo "Error 3-4 !!!  hadoop jar failed!" >> $errlogfile 2>&1
+		  echo "Please check log and execute 'etl_redo.sh'!"
+        fi
+        exit 1
+      fi
+      
     done
 	#################################################### The end.
 
@@ -322,8 +367,8 @@ done
 
 
 waitForCompletion() {
-  counter=`mysql -uroot -Dyinlian -e "SELECT count(*) FROM JOB_SCHE 
-                                       WHERE JOB_TYPE='${JOB_TYPE}' AND JOB_STATUS='0' AND JOB_SCHE_DATE='${etl_date}' AND SYS_ID='${sys_id}' "`
+  counter=`mysql -uroot -Dyinlian -e "SELECT count(*) FROM JOB_SCHE\
+                                       WHERE JOB_TYPE='${job_type}' AND JOB_STATUS='0' AND JOB_SCHE_DATE='${etl_date}' AND SYS_ID='${sys_id}' "`
   # 示例: echo ${counter}  结果: count(*) 64
   unfinishedJobs=`echo ${counter}|awk -F " " '{print $2}'`
 
@@ -332,12 +377,14 @@ waitForCompletion() {
       echo "# 所有非空S24_XXX.txt增量数据文件转码完成!  #"
       echo "# 转码完成时间: $(date '+%Y-%m-%d %T')  #"
 	  hjarEndSecs=$(date '+%s')
-	  hjarTotalSecs=$[ $hjarEndSecs - $hjarBeginSecs ]
-      hjarMinutes=$[ $hjarTotalSecs / 60 ]
+	  hjarSecs=$[ $hjarEndSecs - $hjarBeginSecs ]
+      hjarMinutes=$[ $hjarSecs / 60 ]
       hjarMinutes=$[ $hjarMinutes + 1 ]
 	  echo "#"
       echo "# 本次转码总计耗时: ${hjarMinutes} 分钟!  #"	
 	  echo "#" 
+	else
+	  echo "Done."
 	fi
   else
 	if [ $DEBUG -eq 1 ]; then
@@ -359,49 +406,52 @@ while [[ $unfinishedJobs != "0" ]]; do
 done
 
 
-# 调用数据融合存储过程 #
+# 调用proc_call.sh脚本执行14个存储过程 #
+######################################## Start
 if [ $DEBUG -eq 1 ]; then
-  echo "# 正在执行增量数据融合存储过程,请等待 ......  #"
-  echo "# 融合开始时间: $(date '+%Y-%m-%d %T')  #"
+  echo "# 正在执行14个prc存储过程,请等待 ......  #"
+  echo "# 开始时间: $(date '+%Y-%m-%d %T')  #"
   importBeginSecs=$(date '+%s')
 else
-  echo "Running import-data-prc, please wait ..."  
+  echo "Running 14 prc, please wait ..."
 fi
 
-dir=$TOP_DIR/etl
-hplsql -f $dir/PRC_IMPORT_DATA.prc -d db_name=$DB_NAME -d etl_date=$etl_date >> $logfile 2>&1
+# 说明: 经测试,只要shell成功被调用,$?值即为0,即使shell里的语句执行失败!!!
+#       结论是,这种方式只能判断调用proc_call.sh是否成功,不能反映proc_call.sh中14个prc是否都执行成功!
+./proc_call.sh $DEBUG $TOP_DIR/prc $DB_NAME $etl_date $sys_id > $logdir/proc_call.log.$etl_date 2>&1
+
+echo "Leo: 程序执行到这里!"
+
 if [ $? -ne 0 ]; then
   if [ $DEBUG -eq 1 ]; then
-    echo "# Error: 'PRC_IMPORT_DATA.prc'执行失败!!! 请查看日志并重新执行脚本!  #"
+    echo "# Error 4-1: 调用proc_call.sh失败!!! 请查看日志并重新执行脚本!  #"
+    echo "# Error 4-1: 调用proc_call.sh失败!!! 请查看日志并重新执行脚本!  #" >> $errlogfile 2>&1
   else
-    echo "Error: 'PRC_IMPORT_DATA.prc' execute failed!!!"
+    echo "Error 4-1: call 'proc_call.sh' failed!!!"
+    echo "Error 4-1: call 'proc_call.sh' failed!!!" >> $errlogfile 2>&1
     echo "Please check log and execute again!"  
   fi
   exit 1
 fi
 
-hplsql -f $dir/PRC_IMPORT_LOG_DATA.prc -d db_name=$DB_NAME -d etl_date=$etl_date >> $logfile 2>&1
-if [ $? -ne 0 ]; then
-  if [ $DEBUG -eq 1 ]; then
-    echo "# Error: 'PRC_IMPORT_LOG_DATA.prc'执行失败!!! 请查看日志并重新执行脚本!  #"
-  else
-    echo "Error: 'PRC_IMPORT_LOG_DATA.prc' execute failed!!!"
-    echo "Please check log and execute again!"  
-  fi
-  exit 1
-fi
+echo "Step1==================="
 
 if [ $DEBUG -eq 1 ]; then
   importEndSecs=$(date '+%s')
-  echo "# 融合完成!  #"
-  echo "# 融合完成时间: $(date '+%Y-%m-%d %T')  #"
+  echo "# 执行完成!  #"
+  echo "# 完成时间: $(date '+%Y-%m-%d %T')  #"
   importSecs=$[ $importEndSecs - $importBeginSecs ]
   importMinutes=$[ $importSecs / 60 ]
   importMinutes=$[ $importMinutes + 1 ]
-  echo ""
-  echo "# 本次融合总计耗时: ${importMinutes} 分钟!  #"
-  echo ""
+  echo "#"
+  echo "# 本次执行14个存储过程总计耗时: ${importMinutes} 分钟!  #"
+  echo "#"
+else
+  echo "Done."
 fi
+
+echo "Step2+++++++++++++++++++++++"
+
 
 # 获取当前结束执行脚本时'UNIX时间戳' #
 endSecs=$(date '+%s')
@@ -412,8 +462,8 @@ Minutes=$[ $totalSecs / 60 ]
 Minutes=$[ $Minutes + 1 ]
 
 # 生产环境中删除过程目录 # 
-rm –rf $logdir/../* > /dev/null 2>&1
-rm –rf $datadir/../* > /dev/null 2>&1
+#rm –rf $logdir/../* > /dev/null 2>&1
+#rm –rf $datadir/../* > /dev/null 2>&1
 
 
 if [ $DEBUG -eq 1 ]; then

@@ -5,20 +5,20 @@
 DEBUG=1
 
 # 测试用'库名'                                  [可以修改] #
-DB_NAME="zhglinc"
+DB_NAME="zhgl0726"
 
 # 测试用'提交转码任务'间隔时间(单位: 秒)        [可以修改] #
-# 若在本地测试,          SCHE_SLEEP_SECS >= 60s
-# 若在服务器测试, 10s >= SCHE_SLEEP_SECS >= 8s
-SCHE_SLEEP_SECS=10
+# 若在本地测试,   60s <= SCHE_SLEEP_SECS
+# 若在服务器测试, 30s <= SCHE_SLEEP_SECS
+SCHE_SLEEP_SECS=30
 
 # 测试用'查询任务状态'间隔时间(单位: 秒)        [可以修改] #
 QUERY_SLEEP_SECS=10
 
-# 测试用'全量数据目录'                      [后期可能修改] #
+# 测试用'全量数据存放目录'                      [可以修改] #
 FULL_DATA_DIR="/data1/8479_20150816_full"
 
-# 目录结构之'顶层目录'                      [后期可能修改] #
+# 目录结构之'顶层目录'   [可以修改,但要保证下面的目录结构] #
 TOP_DIR="/home/hadoop/ccam-bigdata/bigdata-toolhub/run/hive"
 # 目录结构:
 #          $TOP_DIR
@@ -28,7 +28,6 @@ TOP_DIR="/home/hadoop/ccam-bigdata/bigdata-toolhub/run/hive"
 #                |-- initdata/
 #                |-- fun/
 #                |-- lib/
-#                |-- load/
 #                |-- logs/
 #                |-- prc/
 #                |-- tables/
@@ -51,24 +50,23 @@ if [ -d $FULL_DATA_DIR ]; then
   for txt in `ls $FULL_DATA_DIR`; do
     temp=`echo ${txt}|awk -F . '{print $2}'`
     if [[ $temp = "txt" ]]; then
-      ETL_DATE=`echo ${txt}|awk '{pos=index($0,"."); print substr($0,pos-8,8)}'`
-	  if [ -n $ETL_DATE ]; then
+      etl_date=`echo ${txt}|awk '{pos=index($0,"."); print substr($0,pos-8,8)}'`
+	  if [ -n $etl_date ]; then
 	    if [ $DEBUG -eq 1 ]; then
-          echo "# ETL日期: ${ETL_DATE}  #"
+		  echo "#"
+          echo "# ETL日期: ${etl_date}  #"
           echo "#"
 		else
-		  echo "ETL date: ${ETL_DATE}"
+		  echo "ETL date: ${etl_date}"
 		fi
 	    break
 	  else
-	    # ETL_DATE 为空,报错退出! #
+	    # etl_date 为空,报错退出! #
         if [ $DEBUG -eq 1 ]; then
-          echo "# Error!!!  #"
-	      echo "# FULL_DATA_DIR 变量所赋值不是一个目录,请重新赋值再执行脚本!  #"
+          echo "# Error!!! 获取 etl_date 为空,请检查 ${FULL_DATA_DIR} 目录下的文件再重新执行脚本!  #"
           echo "#"
         else
-          echo "Error!!!"
-          echo "FULL_DATA_DIR is not a dir. Please check and execute again!"
+          echo "Error!!! Get 'etl_date' empty,Please check ${FULL_DATA_DIR} dir and execute again!"
         fi
         exit 1
 	  fi
@@ -77,7 +75,7 @@ if [ -d $FULL_DATA_DIR ]; then
 else
   if [ $DEBUG -eq 1 ]; then
     echo "# Error!!!  #"
-	echo "# FULL_DATA_DIR 变量所赋值不是一个目录,请重新赋值再执行脚本!  #"
+	echo "# FULL_DATA_DIR 变量所赋值不是一个目录,请重新赋值再重新执行脚本!  #"
     echo "#"
   else
     echo "Error!!!"
@@ -87,10 +85,10 @@ else
 fi
 
 # 获取当前脚本名 #
-curScript="$0"
+cur_script="$0"
 
 # 获取当前开始执行脚本时'UNIX时间戳' #
-beginSecs=$(date '+%s')
+begin_secs=$(date '+%s')
 
 if [ $DEBUG -eq 1 ]; then
   echo "# 开始ETL初始化!  #"
@@ -99,17 +97,13 @@ if [ $DEBUG -eq 1 ]; then
   echo "# sys_id: ${sys_id}  #"
   echo "#"
 else
-  echo "${curScript} running ..."
+  echo "${cur_script} running ..."
   echo "sys_id: ${sys_id}"
 fi
 
-
-comment() {
-
-
 # 准备'ETL日志文件存放目录' #
 ################################################## Start
-logdir=$TOP_DIR/logs/$ETL_DATE
+logdir=$TOP_DIR/logs/$etl_date
 if [ $DEBUG -eq 1 ]; then
   echo "# 正在准备'ETL日志文件存放目录' ......  #"
   echo "# ${logdir}  #"
@@ -125,8 +119,8 @@ if [ $DEBUG -eq 1 ]; then
 fi
 
 
-logfile=$logdir/etl_init.log.$ETL_DATE
-errlogfile=$logdir/etl_init.errlog.$ETL_DATE
+logfile=$logdir/etl_init.log.$etl_date
+errlogfile=$logdir/etl_init.errlog.$etl_date
 
 
 
@@ -138,15 +132,21 @@ fi
 # 检测逻辑: 
 #   字典序查询最后一张表和最后一张视图,
 #   若两者都存在(无论有无数据)则查询语句退出状态码为0,否则退出状态码非0. #
-#   说明: 目前没有想到更好的检测逻辑,先凑合用! # 
+#   说明: 目前没有想到更好的检测逻辑,先凑合用! #
+#   P.S. 当检测到下面特定的表和视图存在时,
+#        则认为220张表和60张视图均已存在且已完成4张特定表的数据加载!!!
+#        当天重跑时,会继续执行后边的全量数据转码,特此说明.
 hive -e "SELECT * FROM ${DB_NAME}.temp_stmtfeeincreasemonth_l6m LIMIT 1;
          SELECT * FROM ${DB_NAME}.v_s24_stmx LIMIT 1" > $logfile 2>&1
 if [ $? -eq 0 ]; then
   if [ $DEBUG -eq 1 ]; then
     echo "# 检测到Hive表和视图已初始化!  #"
+	echo "# "
+	echo "# DB_NAME: ${DB_NAME}  #"
 	echo "#"
   else
     echo "Tables and views have already been initialized."
+	echo "DB_NAME: ${DB_NAME}"
   fi
 else
   #/////////////////////////////////////////////
@@ -157,9 +157,12 @@ else
   hive -e "USE ${DB_NAME}" >> $logfile 2>&1
   if [ $? -eq 0 ]; then
     if [ $DEBUG -eq 1 ]; then
-      echo "# Error: ${DB_NAME} 已存在!!! ETL初始化将重置 ${DB_NAME} 整个库,请手动删库再重新执行脚本!  #"
+      echo "# Error 1-1: ${DB_NAME} 已存在!!!  #"
+      echo "# Error 1-1: ${DB_NAME} 已存在!!!  #" > $errlogfile 2>&1
+	  echo "# ETL初始化将重置 ${DB_NAME} 整个库,请手动删库再重新执行脚本!  #"
     else
-      echo "Error: ${DB_NAME} exist!!!"
+      echo "Error 1-1: ${DB_NAME} exist!!!"
+      echo "Error 1-1: ${DB_NAME} exist!!!" > $errlogfile 2>&1
       echo "Please delete first and execute again!"  
     fi
     exit 1
@@ -172,9 +175,11 @@ else
     ./annuus-udf.sh $DB_NAME >> $logfile 2>&1
 	if [ $? -ne 0 ]; then
 	  if [ $DEBUG -eq 1 ]; then
-	    echo "# Error: 加载UDF函数失败! 请检查并重新执行脚本!  #"
+	    echo "# Error 1-2: 加载UDF函数失败!!! 请检查并重新执行脚本!  #"
+	    echo "# Error 1-2: 加载UDF函数失败!!! 请检查并重新执行脚本!  #" > $errlogfile 2>&1
       else
-        echo "Error: Upload UDF failed!!!"
+        echo "Error 1-2: Upload UDF failed!!!"
+        echo "Error 1-2: Upload UDF failed!!!" > $errlogfile 2>&1
 	    echo "Please check UDF jar file and execute again!"	
 	  fi
       exit 1
@@ -183,6 +188,7 @@ else
       echo "#   加载完成!  #"
     fi	
   fi
+
   if [ $DEBUG -eq 1 ]; then
     echo "# 确认完成!  #"
     echo "#"
@@ -190,16 +196,16 @@ else
     echo "Current database: ${DB_NAME}"  
   fi
 
-  #///////////////////////////////////////////////////////////
-  # 在MySQL中yinlian库下创建 JOB_SCHE 和 JOB_METADATA 两张表 #
-  mysql -uroot -Dyinlian </home/hadoop/ccam-bigdata/bigdata-toolhub/run/hive/etl/mysql_JOB_SCHE.sql >> $logfile 2>&1
+  #///////////////////////////////////////////////////////////////////////
+  # 在MySQL中创建yinlian库,在yinlian库下创建JOB_SCHE和JOB_METADATA两张表 #
+  mysql -uroot </home/hadoop/ccam-bigdata/bigdata-toolhub/run/hive/etl/mysql_JOB_SCHE.sql >> $logfile 2>&1
   if [ $? -ne 0 ]; then
     if [ $DEBUG -eq 1 ]; then
-      echo "# Error: 执行 mysql_JOB_SCHE.sql 出错!!! 请查看日志文件并重新执行脚本!  #"
-      echo "# Error: 执行 mysql_JOB_SCHE.sql 出错!!! 请查看日志文件并重新执行脚本!  #" >> $errlogfile 2>&1
+      echo "# Error 1-3: 执行 mysql_JOB_SCHE.sql 出错!!! 请查看日志文件并重新执行脚本!  #"
+      echo "# Error 1-3: 执行 mysql_JOB_SCHE.sql 出错!!! 请查看日志文件并重新执行脚本!  #" >> $errlogfile 2>&1
     else
-      echo "Error: mysql_JOB_SCHE.sql execute failed!!!"
-      echo "Error: mysql_JOB_SCHE.sql execute failed!!!" >> $errlogfile 2>&1
+      echo "Error 1-3: mysql_JOB_SCHE.sql execute failed!!!"
+      echo "Error 1-3: mysql_JOB_SCHE.sql execute failed!!!" >> $errlogfile 2>&1
       echo "Please check log and execute again!"
     fi
     exit 1
@@ -210,14 +216,15 @@ else
       echo "mysql_JOB_SCHE.sql execute success!"
     fi 
   fi
-  mysql -uroot -Dyinlian </home/hadoop/ccam-bigdata/bigdata-toolhub/run/hive/etl/mysql_JOB_METADATA.sql >> $logfile 2>&1
+  
+  mysql -uroot </home/hadoop/ccam-bigdata/bigdata-toolhub/run/hive/etl/mysql_JOB_METADATA.sql >> $logfile 2>&1
   if [ $? -ne 0 ]; then
     if [ $DEBUG -eq 1 ]; then
-      echo "# Error: 执行 mysql_JOB_METADATA.sql 出错!!! 请查看日志文件并重新执行脚本!  #"
-      echo "# Error: 执行 mysql_JOB_METADATA.sql 出错!!! 请查看日志文件并重新执行脚本!  #" >> $errlogfile 2>&1
+      echo "# Error 1-4: 执行 mysql_JOB_METADATA.sql 出错!!! 请查看日志文件并重新执行脚本!  #"
+      echo "# Error 1-4: 执行 mysql_JOB_METADATA.sql 出错!!! 请查看日志文件并重新执行脚本!  #" >> $errlogfile 2>&1
     else
-      echo "Error: mysql_JOB_METADATA.sql execute failed!!!"
-      echo "Error: mysql_JOB_METADATA.sql execute failed!!!" >> $errlogfile 2>&1
+      echo "Error 1-4: mysql_JOB_METADATA.sql execute failed!!!"
+      echo "Error 1-4: mysql_JOB_METADATA.sql execute failed!!!" >> $errlogfile 2>&1
       echo "Please check log and execute again!"
     fi
     exit 1
@@ -240,7 +247,7 @@ else
 	curBeginSecs=$(date '+%s')
 	echo "#"
   else
-    echo "Tables and views are initializing, please wait 51 minutes ..."  
+    echo "Tables and views are initializing, please wait 52 minutes ..."  
   fi
   
   . $TOP_DIR/bin/1_start_pretreatment.sh $DB_NAME >> $logfile 2>&1
@@ -269,11 +276,11 @@ else
              LOAD DATA LOCAL INPATH '${d}/TBL_BANKS.txt' OVERWRITE INTO TABLE ${DB_NAME}.tbl_banks;" >> $logfile 2>&1
     if [ $? -ne 0 ]; then
 	  if [ $DEBUG -eq 1 ]; then
-	    echo "# Error: 加载'表初始化数据'错误!!! 请检查'表初始化数据'是否存在并重新执行脚本!  #"
-	    echo "# Error: 加载'表初始化数据'错误!!! 请检查'表初始化数据'是否存在并重新执行脚本!  #" >> $errlogfile 2>&1
+	    echo "# Error 2-1: 加载'表初始化数据'错误!!! 请检查'表初始化数据'是否存在并重新执行脚本!  #"
+	    echo "# Error 2-1: 加载'表初始化数据'错误!!! 请检查'表初始化数据'是否存在并重新执行脚本!  #" >> $errlogfile 2>&1
       else
-        echo "Error: Load table data error!!!"
-        echo "Error: Load table data error!!!" >> $errlogfile 2>&1
+        echo "Error 2-1: Load table data error!!!"
+        echo "Error 2-1: Load table data error!!!" >> $errlogfile 2>&1
 	    echo "Please check whether data-file (all) exist and execute again!"	  
 	  fi
       exit 1
@@ -282,11 +289,11 @@ else
 	hive -e "INSERT INTO TABLE ${DB_NAME}.dual VALUES('X')" >> $logfile 2>&1
     if [ $? -ne 0 ]; then
 	  if [ $DEBUG -eq 1 ]; then
-	    echo "# Error: 加载'dual表初始化数据'错误!!! 请检查并重新执行脚本!  #"
-	    echo "# Error: 加载'dual表初始化数据'错误!!! 请检查并重新执行脚本!  #" >> $errlogfile 2>&1
+	    echo "# Error 2-2: 加载'dual表初始化数据'错误!!! 请检查并重新执行脚本!  #"
+	    echo "# Error 2-2: 加载'dual表初始化数据'错误!!! 请检查并重新执行脚本!  #" >> $errlogfile 2>&1
       else
-        echo "Error: Load dual data error!!!"
-        echo "Error: Load dual data error!!!" >> $errlogfile 2>&1
+        echo "Error 2-2: Load dual data error!!!"
+        echo "Error 2-2: Load dual data error!!!" >> $errlogfile 2>&1
 	    echo "Please check log and execute again!"	  
 	  fi
       exit 1
@@ -298,11 +305,11 @@ else
     fi
   else
 	if [ $DEBUG -eq 1 ]; then
-	  echo "# Error: '表初始化数据'不存在/完整!!! 请检查并重新执行脚本!  #"
-	  echo "# Error: '表初始化数据'不存在/完整!!! 请检查并重新执行脚本!  #" >> $errlogfile 2>&1
+	  echo "# Error 2-3: '表初始化数据'不存在/完整!!! 请检查并重新执行脚本!  #"
+	  echo "# Error 2-3: '表初始化数据'不存在/完整!!! 请检查并重新执行脚本!  #" >> $errlogfile 2>&1
     else
-      echo "Error: Table data error!!!"
-      echo "Error: Table data error!!!" >> $errlogfile 2>&1
+      echo "Error 2-3: Table data error!!!"
+      echo "Error 2-3: Table data error!!!" >> $errlogfile 2>&1
 	  echo "Please check whether data-file (all) exist and execute again!"	  
 	fi
     exit 1
@@ -310,7 +317,7 @@ else
 fi
 
 
-# 遍历'全量数据目录',统计S24_XXX.txt文件的分布情况(总数,非空数) #
+# 遍历'全量数据存放目录',统计S24_XXX.txt文件的分布情况(总数,非空数) #
 ################################################################# Start
 totalFiles=0
 nonEmptyFiles=0
@@ -330,11 +337,11 @@ done
 #/////////////////////////////
 if [ $totalFiles -eq 0 ]; then
   if [ $DEBUG -eq 1 ]; then
-    echo "# Error: ${FULL_DATA_DIR} 目录下没有'txt'数据文件!!! 请检查并重新执行脚本!  #"
-    echo "# Error: ${FULL_DATA_DIR} 目录下没有'txt'数据文件!!! 请检查并重新执行脚本!  #" >> $errlogfile 2>&1
+    echo "# Error 3-1: ${FULL_DATA_DIR} 目录下没有'txt'数据文件!!! 请检查并重新执行脚本!  #"
+    echo "# Error 3-1: ${FULL_DATA_DIR} 目录下没有'txt'数据文件!!! 请检查并重新执行脚本!  #" >> $errlogfile 2>&1
   else
-    echo "Error: No 'txt' file in ${FULL_DATA_DIR} !!!"
-    echo "Error: No 'txt' file in ${FULL_DATA_DIR} !!!" >> $errlogfile 2>&1
+    echo "Error 3-1: No 'txt' file in ${FULL_DATA_DIR} !!!"
+    echo "Error 3-1: No 'txt' file in ${FULL_DATA_DIR} !!!" >> $errlogfile 2>&1
     echo "Please check log and execute again!"  
   fi
   exit 1
@@ -354,14 +361,14 @@ if [ $DEBUG -eq 1 ]; then
   echo "# 正在准备MySQL上yinlian库下的JOB_SCHE表 ......  #"
 fi
 mysql -uroot -Dyinlian -e "DELETE FROM JOB_SCHE 
-                            WHERE JOB_TYPE='${job_type}' AND JOB_SCHE_DATE='${ETL_DATE}' AND SYS_ID='${sys_id}' " >> $logfile 2>&1
+                            WHERE JOB_TYPE='${job_type}' AND JOB_SCHE_DATE='${etl_date}' AND SYS_ID='${sys_id}' " >> $logfile 2>&1
 if [ $? -ne 0 ]; then
   if [ $DEBUG -eq 1 ]; then
-    echo "# Error: 访问MySQL出错!!! 请检查访问权限并重新执行脚本!  #"
-    echo "# Error: 访问MySQL出错!!! 请检查访问权限并重新执行脚本!  #" >> $errlogfile 2>&1
+    echo "# Error 4-1: 访问MySQL出错!!! 请检查访问权限并重新执行脚本!  #"
+    echo "# Error 4-1: 访问MySQL出错!!! 请检查访问权限并重新执行脚本!  #" >> $errlogfile 2>&1
   else
-    echo "Error: Access MySQL failed!!!"
-    echo "Error: Access MySQL failed!!!" >> $errlogfile 2>&1
+    echo "Error 4-1: Access MySQL failed!!!"
+    echo "Error 4-1: Access MySQL failed!!!" >> $errlogfile 2>&1
     echo "Please check log and execute again!"  
   fi
   exit 1
@@ -370,9 +377,6 @@ if [ $DEBUG -eq 1 ]; then
   echo "# 准备完成!  #"
   echo "#"
 fi
-
-
-# TODO - 通过统计ETL日期和JOB_SCHE状态跳过重复转码 - 2016.07.06
 
 
 # 开始hadoop jar转码所有非空S24_XXX.txt全量文件 #
@@ -405,14 +409,14 @@ for f in `ls $FULL_DATA_DIR`; do
 	  WAREHOUSE_DIR="/user/hive/warehouse"
       dbInDir=$WAREHOUSE_DIR/$DB_NAME/etl_in/$tabname # dbInDir  - hadoop jar输入目录(表名文件夹,绝对路径)
       dbOutDir=$WAREHOUSE_DIR/$DB_NAME/$tabname       # dbOutDir - hadoop jar输出目录(表名文件夹,绝对路径)   
-      tablog=$logdir/$tabname.log.$ETL_DATE           # tablog   - 当前S24_XXX.txt对应日志文件(绝对路径)
+      tablog=$logdir/$tabname.log.$etl_date           # tablog   - 当前S24_XXX.txt对应日志文件(绝对路径)
 	
       # 注意: 有路径切换!!!
       cd $TOP_DIR/etl
       
       # TODO - 如何捕获 nohup ./etl_trans.sh 的异常 #
-      #nohup ./etl_trans.sh $ETL_DATE $tabname $dbfile $jarfile $dbInDir $dbOutDir $sys_id $errlogfile >> $tablog 2>&1 &
-      ./etl_trans.sh $ETL_DATE $tabname $dbfile $jarfile $dbInDir $dbOutDir $job_type $sys_id $errlogfile >> $tablog 2>&1 &
+      #nohup ./etl_trans.sh $etl_date $tabname $dbfile $jarfile $dbInDir $dbOutDir $sys_id $errlogfile >> $tablog 2>&1 &
+      ./etl_trans.sh $etl_date $tabname $dbfile $jarfile $dbInDir $dbOutDir $job_type $sys_id $errlogfile >> $tablog 2>&1 &
       
       sleep $SCHE_SLEEP_SECS  # 为防止任务后台积压,需间隔一定时间再提交任务(因为全量数据文件有的很大)
     fi
@@ -420,12 +424,9 @@ for f in `ls $FULL_DATA_DIR`; do
 done
 
 
-}
-
-
 waitForCompletion() {
   counter=`mysql -uroot -Dyinlian -e "SELECT count(*) FROM JOB_SCHE 
-                                       WHERE JOB_TYPE='${job_type}' AND JOB_STATUS='0' AND JOB_SCHE_DATE='${ETL_DATE}' AND SYS_ID='${sys_id}' "`
+                                       WHERE JOB_TYPE='${job_type}' AND JOB_STATUS='0' AND JOB_SCHE_DATE='${etl_date}' AND SYS_ID='${sys_id}' "`
   unfinishedJobs=`echo ${counter}|awk -F " " '{print $2}'`
 
   if [ $unfinishedJobs -eq "0" ]; then
@@ -470,28 +471,28 @@ else
   echo "Running import-data-prc, please wait ..."  
 fi
 
-dir=$TOP_DIR/etl
-hplsql -f $dir/PRC_IMPORT_DATA.prc -d db_name=$DB_NAME -d etl_date=$ETL_DATE >> $logfile 2>&1
+dir=$TOP_DIR/prc
+hplsql -f $dir/PRC_IMPORT_DATA.prc -d DATA_BASE=$DB_NAME -d ETL_DATE=$etl_date >> $logfile 2>&1
 if [ $? -ne 0 ]; then
   if [ $DEBUG -eq 1 ]; then
-    echo "# Error: 'PRC_IMPORT_DATA.prc'执行失败!!! 请查看日志并重新执行脚本!  #"
-    echo "# Error: 'PRC_IMPORT_DATA.prc'执行失败!!! 请查看日志并重新执行脚本!  #" >> $errlogfile 2>&1
+    echo "# Error 5-1: 'PRC_IMPORT_DATA.prc'执行失败!!! 请查看日志并重新执行脚本!  #"
+    echo "# Error 5-1: 'PRC_IMPORT_DATA.prc'执行失败!!! 请查看日志并重新执行脚本!  #" >> $errlogfile 2>&1
   else
-    echo "Error: 'PRC_IMPORT_DATA.prc' execute failed!!!"
-    echo "Error: 'PRC_IMPORT_DATA.prc' execute failed!!!" >> $errlogfile 2>&1
+    echo "Error 5-1: 'PRC_IMPORT_DATA.prc' execute failed!!!"
+    echo "Error 5-1: 'PRC_IMPORT_DATA.prc' execute failed!!!" >> $errlogfile 2>&1
     echo "Please check log and execute again!"  
   fi
   exit 1
 fi
 
-hplsql -f $dir/PRC_IMPORT_LOG_DATA.prc -d db_name=$DB_NAME -d etl_date=$ETL_DATE >> $logfile 2>&1
+hplsql -f $dir/PRC_IMPORT_LOG_DATA.prc -d DATA_BASE=$DB_NAME -d ETL_DATE=$etl_date >> $logfile 2>&1
 if [ $? -ne 0 ]; then
   if [ $DEBUG -eq 1 ]; then
-    echo "# Error: 'PRC_IMPORT_LOG_DATA.prc'执行失败!!! 请查看日志并重新执行脚本!  #"
-    echo "# Error: 'PRC_IMPORT_LOG_DATA.prc'执行失败!!! 请查看日志并重新执行脚本!  #" >> $errlogfile 2>&1
+    echo "# Error 5-2: 'PRC_IMPORT_LOG_DATA.prc'执行失败!!! 请查看日志并重新执行脚本!  #"
+    echo "# Error 5-2: 'PRC_IMPORT_LOG_DATA.prc'执行失败!!! 请查看日志并重新执行脚本!  #" >> $errlogfile 2>&1
   else
-    echo "Error: 'PRC_IMPORT_LOG_DATA.prc' execute failed!!!"
-    echo "Error: 'PRC_IMPORT_LOG_DATA.prc' execute failed!!!" >> $errlogfile 2>&1
+    echo "Error 5-2: 'PRC_IMPORT_LOG_DATA.prc' execute failed!!!"
+    echo "Error 5-2: 'PRC_IMPORT_LOG_DATA.prc' execute failed!!!" >> $errlogfile 2>&1
     echo "Please check log and execute again!"  
   fi
   exit 1
@@ -510,14 +511,16 @@ if [ $DEBUG -eq 1 ]; then
 fi
 
 
-# 获取当前结束执行时UNIX时间戳 #
+# 获取当前结束执行脚本时'UNIX时间戳' #
 endSecs=$(date '+%s')
 
 # 计算脚本总执行时间(单位: 分钟) #
-totalSecs=$[ $endSecs - $beginSecs ]
+totalSecs=$[ $endSecs - $begin_secs ]
 Minutes=$[ $totalSecs / 60 ]
 Minutes=$[ $Minutes + 1 ]
 
+# 生产环境中删除过程目录 # 
+#rm –rf $logdir/../* > /dev/null 2>&1
 
 if [ $DEBUG -eq 1 ]; then
   echo "# ETL初始化完成!  #"

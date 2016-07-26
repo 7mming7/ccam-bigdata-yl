@@ -7,7 +7,7 @@ jarfile=$4    # 参数4: jarfile  -  jar包(绝对路径)
 dbInDir=$5    # 参数5: hadoop jar 输入目录(表名文件夹[-increase],绝对路径)
 dbOutDir=$6   # 参数6: hadoop jar 输出目录(表名文件夹,绝对路径)
 job_type=$7   # 参数7: job_type   - 任务类型(ETL-All,全量任务  ETL,增量任务)
-sys_id=$8     # 参数8: sys_id     - 银行号(4位数字,执行脚本时从命令行传入)
+sys_id=$8     # 参数8: sys_id     - 银行代号(4位数字,执行脚本时从命令行传入)
 errlogfile=$9 # 参数9: errlogfile - 错误日志存放文件
 
 echo "#"
@@ -24,6 +24,7 @@ echo "#"
 
 echo "# 开始转码!  #"
 echo "# 开始时间: $(date '+%Y-%m-%d %T')  #"
+transBeginSecs=$(date '+%s')
 echo "#"
 
 bdate=`date '+%Y%m%d'`       # begin date #
@@ -62,8 +63,8 @@ if [ $? -ne 0 ]; then
   etime=`date '+%Y-%m-%d %T'`  # end time #
   mysql -uroot -Dyinlian -e "UPDATE JOB_SCHE SET JOB_STATUS='2',JOB_END_DT='${edate}',JOB_END_TM='${etime}' 
 						      WHERE JOB_NM='${tabname}' AND JOB_TYPE='${job_type}' AND JOB_SCHE_DATE='${etl_date}' AND SYS_ID='${sys_id}' "
-  echo "# Error: ${dbfile} 文件转码失败!!! 请查看日志文件并重新执行脚本!  #" >&1
-  echo "# Error: ${dbfile} 文件转码失败!!! 请查看日志文件并重新执行脚本!  #" >> $errlogfile 2>&1
+  echo "# Error x-1: ${dbfile} 文件转码失败!!! 请查看日志文件并重新执行脚本!  #" >&1
+  echo "# Error x-1: ${dbfile} 文件转码失败!!! 请查看日志文件并重新执行脚本!  #" >> $errlogfile 2>&1
   exit 1
 fi
 
@@ -81,4 +82,7 @@ echo "#"
 echo "# 完成转码!  #"
 echo "# 完成时间: $(date '+%Y-%m-%d %T')  #"
 echo "#"
-  
+transEndSecs=$(date '+%s')
+transSecs=$[ $transEndSecs - $transBeginSecs ]
+echo "# 本次转码总计耗时: ${transSecs} 秒!  #"
+echo "#"
